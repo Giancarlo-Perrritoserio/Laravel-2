@@ -18,7 +18,7 @@ services:
       - key: DB_USERNAME
         value: pruebarender_db_user
       - key: DB_PASSWORD
-        sync: false   # Agregarás esta contraseña manualmente en el panel de Render
+        value: O2sW813IkSxZO4LTZ4mAaAZ5HEYwCydI
     region: oregon
     plan: free
     buildCommand: ""        # ⚠️ Vacío, ya que composer install está en el Dockerfile
