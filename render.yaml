@@ -6,7 +6,7 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_KEY
-        sync: false
+        sync: false   # Esto se generará automáticamente en start.sh si no existe
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
@@ -18,8 +18,8 @@ services:
       - key: DB_USERNAME
         value: pruebarender_db_user
       - key: DB_PASSWORD
-        sync: false  # La contraseña aún no está visible, la agregaremos manualmente en Render
+        sync: false   # Agregarás esta contraseña manualmente en el panel de Render
     region: oregon
     plan: free
-    buildCommand: "composer install"
-    startCommand: "php-fpm"
+    buildCommand: ""        # ⚠️ Vacío, ya que composer install está en el Dockerfile
+    startCommand: "./start.sh"  # ✅ Tu script que espera la base de datos y ejecuta migraciones
