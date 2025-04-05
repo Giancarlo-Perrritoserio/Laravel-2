@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     libpq-dev \
     nginx \
-    netcat \
+    netcat-openbsd \
     && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
 # Verificar configuración de PHP (para depuración)
