@@ -44,5 +44,12 @@ RUN chown -R www-data:www-data /var/www/html \
 COPY default.conf /etc/nginx/sites-available/default
 COPY supervisor.conf /etc/supervisor/conf.d/
 
+# Verificar conexión a PostgreSQL
+RUN apt-get install -y postgresql-client \
+    && pg_isready -h $DB_HOST -p $DB_PORT -U $DB_USERNAME -d $DB_DATABASE \
+    && php artisan config:clear \
+    && php artisan cache:clear
+
+    
 EXPOSE 80
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
