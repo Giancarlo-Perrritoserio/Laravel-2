@@ -33,14 +33,6 @@ COPY default.conf /etc/nginx/sites-available/default
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Generar la clave de la aplicación si es necesario
-RUN echo "🔑 Generando APP_KEY si es necesario..." && \
-    if [ -z "$APP_KEY" ] || [ "$APP_KEY" == "base64:AAAAAAAAAAAAAAAAAAAAA==" ]; then \
-        php artisan key:generate --force; \
-    else \
-        echo "🔑 APP_KEY ya está definido."; \
-    fi
-
 # Exponer el puerto HTTP 80
 EXPOSE 80
 
