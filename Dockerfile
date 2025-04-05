@@ -20,7 +20,7 @@ RUN php --ini
 
 # Copiar archivos del proyecto
 WORKDIR /var/www/html
-COPY . .
+COPY . ./
 
 # Instalar Composer y limpiar caché
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -33,13 +33,6 @@ COPY default.conf /etc/nginx/sites-available/default
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Esperar a que la base de datos esté disponible
-RUN echo "⏳ Esperando a que PostgreSQL esté disponible en $DB_HOST:$DB_PORT..." && \
-    until nc -z -v -w5 "$DB_HOST" "$DB_PORT"; do \
-        echo "⏳ Esperando conexión a la base de datos..."; \
-        sleep 5; \
-    done
-
 # Generar la clave de la aplicación si es necesario
 RUN echo "🔑 Generando APP_KEY si es necesario..." && \
     if [ -z "$APP_KEY" ] || [ "$APP_KEY" == "base64:AAAAAAAAAAAAAAAAAAAAA==" ]; then \
@@ -48,11 +41,8 @@ RUN echo "🔑 Generando APP_KEY si es necesario..." && \
         echo "🔑 APP_KEY ya está definido."; \
     fi
 
-# Ejecutar migraciones
-RUN echo "📦 Ejecutando migraciones..." && php artisan migrate --force
-
 # Exponer el puerto HTTP 80
 EXPOSE 80
 
-# Iniciar Nginx y PHP-FPM
-CMD service nginx start && exec php-fpm
+# Ejecutar migraciones y luego iniciar Nginx y PHP-FPM
+CMD php artisan migrate --force && service nginx start && exec php-fpm

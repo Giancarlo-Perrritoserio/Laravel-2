@@ -21,5 +21,5 @@ services:
         value: O2sW813IkSxZO4LTZ4mAaAZ5HEYwCydI
     region: oregon
     plan: free
-    buildCommand: ""        # ⚠️ Vacío, ya que composer install está en el Dockerfile
-    startCommand: "./start.sh"  # ✅ Tu script que espera la base de datos y ejecuta migraciones
+    buildCommand: ""
+    startCommand: ""  
