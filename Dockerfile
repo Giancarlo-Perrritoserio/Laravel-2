@@ -1,8 +1,8 @@
 FROM php:8.2-fpm
 
-# 1. Instalar dependencias específicas para PostgreSQL
+# 1. Instalar dependencias específicas para PostgreSQL (CORREGIDO)
 RUN apt-get update && apt-get install -y \
-    git unzip zip curl libpng-dev libonick-dev libxml2-dev \
+    git unzip zip curl libpng-dev libonig-dev libxml2-dev \
     libpq-dev nginx supervisor \
     && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
