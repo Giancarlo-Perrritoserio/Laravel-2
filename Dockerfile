@@ -14,29 +14,17 @@ RUN apt-get update && apt-get install -y \
     nginx \
     && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
-# Verificar configuración de PHP (para depuración)
-RUN php --ini
-
 # Copiar archivos del proyecto
 WORKDIR /var/www/html
 COPY . .
 
-# Instalar Composer y limpiar caché
+# Instalar Composer y dependencias
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer clear-cache && composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader
 
-# Crear archivo .env a partir de .env.example
-RUN cp .env.example .env
-
-# Permisos correctos para almacenamiento, cache y base de datos SQLite
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-RUN chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-
-# Generar clave de aplicación
-RUN php artisan key:generate
-
-# Migrar base de datos
-RUN php artisan migrate --force
+# Permisos correctos para Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Copiar configuración de Nginx
 COPY default.conf /etc/nginx/sites-available/default
