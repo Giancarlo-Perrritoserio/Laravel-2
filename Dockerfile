@@ -12,10 +12,17 @@ RUN mkdir -p /var/log/supervisor \
     && mkdir -p /var/log/php-fpm \
     && chown -R www-data:www-data /var/log/nginx /var/log/php-fpm
 
-# 3. Configuración PHP
+# 3. Configuración PHP-FPM CORREGIDA
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && echo "pm.max_children = 50" >> /usr/local/etc/php-fpm.d/www.conf \
-    && echo "pm.start_servers = 5" >> /usr/local/etc/php-fpm.d/www.conf
+    && echo -e "\
+pm = dynamic\n\
+pm.max_children = 5\n\
+pm.start_servers = 2\n\
+pm.min_spare_servers = 1\n\
+pm.max_spare_servers = 3\n\
+pm.max_requests = 500\n\
+" >> /usr/local/etc/php-fpm.d/www.conf
+
 
 WORKDIR /var/www/html
 COPY . .
