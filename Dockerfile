@@ -6,9 +6,11 @@ RUN apt-get update && apt-get install -y \
     libpq-dev nginx supervisor \
     && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
-# 2. Directorios para logs
-RUN mkdir -p /var/log/{supervisor,nginx,php-fpm} \
-    && chown -R www-data:www-data /var/log/{nginx,php-fpm}
+# 2. Directorios para logs (VERSIÓN CORREGIDA)
+RUN mkdir -p /var/log/supervisor \
+    && mkdir -p /var/log/nginx \
+    && mkdir -p /var/log/php-fpm \
+    && chown -R www-data:www-data /var/log/nginx /var/log/php-fpm
 
 # 3. Configuración PHP
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
