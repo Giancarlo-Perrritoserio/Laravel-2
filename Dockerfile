@@ -1,40 +1,23 @@
-# Usamos PHP 8.2 con FPM
 FROM php:8.2-fpm
 
-# Instalar dependencias del sistema
+# Instalar dependencias
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    zip \
-    curl \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    libpq-dev \
-    nginx \
-    netcat-openbsd \
+    git unzip zip curl libpng-dev libonig-dev libxml2-dev libpq-dev nginx \
     && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
-# Verificar configuración de PHP (para depuración)
-RUN php --ini
-
-# Copiar archivos del proyecto
 WORKDIR /var/www/html
-COPY . ./
+COPY . .
 
-# Instalar Composer y limpiar caché
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN composer clear-cache && composer install --no-dev --optimize-autoloader
+# Instalar Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
+    && composer install --no-dev --optimize-autoloader
 
-# Copiar configuración de Nginx
+# Configuración de Nginx
 COPY default.conf /etc/nginx/sites-available/default
 
-# Permisos correctos
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Permisos
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Exponer el puerto HTTP 80
 EXPOSE 80
-
-# Iniciar Nginx y PHP-FPM
-CMD service nginx start && exec php-fpm
+CMD service nginx start && php-fpm
