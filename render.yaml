@@ -6,7 +6,7 @@ services:
       - key: APP_ENV
         value: production
       - key: APP_KEY
-        sync: false   # Esto se generará automáticamente en start.sh si no existe
+        sync: base64:6u+iaWkYzs65EVca+VWcSplomFn45HAZ1HvQUfgeRIk=
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST

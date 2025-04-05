@@ -33,12 +33,26 @@ COPY default.conf /etc/nginx/sites-available/default
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Copiar script de inicio
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# Esperar a que la base de datos esté disponible
+RUN echo "⏳ Esperando a que PostgreSQL esté disponible en $DB_HOST:$DB_PORT..." && \
+    until nc -z -v -w5 "$DB_HOST" "$DB_PORT"; do \
+        echo "⏳ Esperando conexión a la base de datos..."; \
+        sleep 5; \
+    done
+
+# Generar la clave de la aplicación si es necesario
+RUN echo "🔑 Generando APP_KEY si es necesario..." && \
+    if [ -z "$APP_KEY" ] || [ "$APP_KEY" == "base64:AAAAAAAAAAAAAAAAAAAAA==" ]; then \
+        php artisan key:generate --force; \
+    else \
+        echo "🔑 APP_KEY ya está definido."; \
+    fi
+
+# Ejecutar migraciones
+RUN echo "📦 Ejecutando migraciones..." && php artisan migrate --force
 
 # Exponer el puerto HTTP 80
 EXPOSE 80
 
-# Ejecutar el script de inicio
-CMD ["/start.sh"]
+# Iniciar Nginx y PHP-FPM
+CMD service nginx start && exec php-fpm
