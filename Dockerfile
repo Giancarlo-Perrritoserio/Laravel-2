@@ -22,6 +22,9 @@ RUN php --ini
 WORKDIR /var/www/html
 COPY . ./
 
+# Copiar el archivo .env si existe
+COPY .env .env
+
 # Instalar Composer y limpiar caché
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN composer clear-cache && composer install --no-dev --optimize-autoloader
@@ -44,5 +47,5 @@ RUN echo "🔑 Generando APP_KEY si es necesario..." && \
 # Exponer el puerto HTTP 80
 EXPOSE 80
 
-# Ejecutar migraciones y luego iniciar Nginx y PHP-FPM
-CMD php artisan migrate --force && service nginx start && exec php-fpm
+# Iniciar Nginx y PHP-FPM
+CMD service nginx start && exec php-fpm
