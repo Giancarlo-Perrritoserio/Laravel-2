@@ -29,6 +29,14 @@ RUN chown -R www-data:www-data /var/www/html \
     && find /var/www/html -type f -exec chmod 644 {} \; \
     && chmod -R 777 storage bootstrap/cache database/database.sqlite
 
+
+# Asegurar que .env exista
+RUN if [ ! -f .env ]; then \
+    cp .env.example .env && \
+    echo "DB_CONNECTION=sqlite" >> .env && \
+    echo "CACHE_DRIVER=array" >> .env; \
+fi
+    
 # 6. Configuración final
 COPY default.conf /etc/nginx/sites-available/default
 COPY supervisor.conf /etc/supervisor/conf.d/
