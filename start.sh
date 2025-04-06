@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Configuración de Laravel
-php artisan config:clear
-php artisan cache:clear
-
 # Crear base de datos SQLite si no existe
 if [ ! -f database/database.sqlite ]; then
     touch database/database.sqlite
@@ -15,34 +11,36 @@ fi
 if [ ! -f .env ]; then
     echo "⚙️ Creando archivo .env..."
     cp .env.example .env
-    # Configuración mínima para SQLite
-    echo "DB_CONNECTION=sqlite" >> .env
-    echo "CACHE_DRIVER=array" >> .env
-    echo "SESSION_DRIVER=file" >> .env
-    echo "QUEUE_CONNECTION=sync" >> .env
+    
+    # Configuración esencial para SQLite
+    cat > .env <<EOL
+APP_ENV=production
+APP_DEBUG=false
+DB_CONNECTION=sqlite
+CACHE_DRIVER=array
+SESSION_DRIVER=database
+QUEUE_CONNECTION=sync
+EOL
 fi
 
 # Generar clave de aplicación si no existe
-if [ -z "$(grep '^APP_KEY=base64' .env)" ]; then
+if ! grep -q '^APP_KEY=base64' .env; then
     php artisan key:generate --force
 fi
 
-# Crear base de datos SQLite si no existe
-if [ ! -f database/database.sqlite ]; then
-    touch database/database.sqlite
-    chmod 777 database/database.sqlite
-    echo "✅ Base de datos SQLite creada"
-fi
+# Limpiar configuraciones
+php artisan config:clear
+php artisan cache:clear
 
-# Ejecutar migraciones
+# Ejecutar migraciones (solo una vez)
 php artisan migrate --force
-
-# Ejecutar migraciones (forzar todas)
-php artisan migrate:fresh --force
 
 # Optimizar la aplicación
 php artisan optimize
 
+# Configurar permisos finales
+chmod -R 775 storage bootstrap/cache database/database.sqlite
+chown -R www-data:www-data storage bootstrap/cache database/database.sqlite
 
 # Iniciar servicios
 echo "🚀 Iniciando servicios..."
