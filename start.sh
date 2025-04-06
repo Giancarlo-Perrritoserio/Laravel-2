@@ -1,34 +1,38 @@
 #!/bin/bash
 
-# Validar que las variables de entorno necesarias estén presentes
-if [ -z "$DB_HOST" ] || [ -z "$DB_PORT" ]; then
-  echo "❌ ERROR: Las variables DB_HOST o DB_PORT no están definidas."
-  exit 1
-fi
+# Configuración de variables
+DB_HOST="dpg-cvk2plruibrs739sj38g-a"
+DB_PORT="5432"
+DB_USER="pruebarender_db_user"
+DB_NAME="pruebarender_db"
+DB_PASS="O2sW813IkSxZO4LTZ4mAaAZ5HEYwCydI"
 
-echo "⏳ Esperando a que PostgreSQL esté disponible en $DB_HOST:$DB_PORT..."
-
-# Esperar a la base de datos con retry loop
-until nc -z -v -w5 "$DB_HOST" "$DB_PORT"; do
-  echo "⏳ Esperando conexión a la base de datos..."
-  sleep 5
+# Esperar a PostgreSQL con timeout
+echo "Esperando a PostgreSQL..."
+for i in {1..30}; do
+    if PGPASSWORD=$DB_PASS psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "SELECT 1" >/dev/null 2>&1; then
+        echo "PostgreSQL está listo!"
+        break
+    fi
+    sleep 2
+    if [ $i -eq 30 ]; then
+        echo "Error: No se pudo conectar a PostgreSQL después de 60 segundos"
+        exit 1
+    fi
 done
 
-echo "✅ Conexión con la base de datos establecida."
+# Configuración de Laravel
+php artisan config:clear
+php artisan cache:clear
 
-# Generar clave de aplicación si no está presente
-if [ -z "$APP_KEY" ] || [ "$APP_KEY" == "base64:AAAAAAAAAAAAAAAAAAAAA==" ]; then
-  echo "🔑 Generando APP_KEY..."
-  php artisan key:generate --force
-else
-  echo "🔑 APP_KEY ya está definido."
+# Solo generar clave si no existe
+if [ -z "$(grep '^APP_KEY=base64' .env)" ]; then
+    php artisan key:generate --force
 fi
 
-# Migrar base de datos
-echo "📦 Ejecutando migraciones..."
+# Ejecutar migraciones (opcional, quitar si no se necesitan)
 php artisan migrate --force
 
 # Iniciar servicios
-echo "🚀 Iniciando servidor Nginx y PHP-FPM..."
-service nginx start
-exec php-fpm
+echo "Iniciando servicios..."
+exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
