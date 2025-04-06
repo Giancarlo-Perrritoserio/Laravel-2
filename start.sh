@@ -1,47 +1,40 @@
 #!/bin/bash
 
-# Crear base de datos SQLite si no existe
-if [ ! -f database/database.sqlite ]; then
-    touch database/database.sqlite
-    chmod 777 database/database.sqlite
-    echo "✅ Base de datos SQLite creada"
-fi
-
-# Configurar .env si no existe (para Render)
+# 1. Configuración inicial
 if [ ! -f .env ]; then
-    echo "⚙️ Creando archivo .env..."
     cp .env.example .env
-    
-    # Configuración esencial para SQLite
-    cat > .env <<EOL
-APP_ENV=production
-APP_DEBUG=false
-DB_CONNECTION=sqlite
-CACHE_DRIVER=array
-SESSION_DRIVER=database
-QUEUE_CONNECTION=sync
-EOL
+    echo "APP_ENV=production" >> .env
+    echo "APP_DEBUG=false" >> .env
+    echo "DB_CONNECTION=sqlite" >> .env
+    echo "CACHE_DRIVER=file" >> .env
+    echo "SESSION_DRIVER=file" >> .env
+    echo "QUEUE_CONNECTION=sync" >> .env
 fi
 
-# Generar clave de aplicación si no existe
+# 2. Generar APP_KEY si no existe
 if ! grep -q '^APP_KEY=base64' .env; then
     php artisan key:generate --force
 fi
 
-# Limpiar configuraciones
+# 3. Configurar base de datos SQLite
+if [ ! -f database/database.sqlite ]; then
+    touch database/database.sqlite
+    chmod 777 database/database.sqlite
+fi
+
+# 4. Configurar permisos
+chown -R www-data:www-data storage bootstrap/cache database
+chmod -R 775 storage bootstrap/cache database
+
+# 5. Limpiar cachés
 php artisan config:clear
-php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
 
-# Ejecutar migraciones (solo una vez)
+# 6. Migraciones y optimización
 php artisan migrate --force
-
-# Optimizar la aplicación
 php artisan optimize
 
-# Configurar permisos finales
-chmod -R 775 storage bootstrap/cache database/database.sqlite
-chown -R www-data:www-data storage bootstrap/cache database/database.sqlite
-
-# Iniciar servicios
-echo "🚀 Iniciando servicios..."
+# 7. Iniciar servicios
+echo "🟢 Iniciando servicios..."
 exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
